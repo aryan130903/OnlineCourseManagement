@@ -110,4 +110,28 @@ public class CourseService {
     }
 
 
+    public ResponseEntity<String> updateCourse(Integer courseId, Course updatedCourseData) {
+        Optional<Course> optionalCourse = courseRepository.findById(courseId);
+        if (optionalCourse.isEmpty()) {
+            return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
+        }
+
+        Course existingCourse = optionalCourse.get();
+
+        if (updatedCourseData.getTitle() != null)
+            existingCourse.setTitle(updatedCourseData.getTitle());
+
+        if (updatedCourseData.getDescription() != null)
+            existingCourse.setDescription(updatedCourseData.getDescription());
+
+        if (updatedCourseData.getPrice() != null)
+            existingCourse.setPrice(updatedCourseData.getPrice());
+
+        if (updatedCourseData.getCategory() != null)
+            existingCourse.setCategory(updatedCourseData.getCategory());
+
+        courseRepository.save(existingCourse);
+        return new ResponseEntity<>("Course updated successfully", HttpStatus.OK);
+    }
+
 }

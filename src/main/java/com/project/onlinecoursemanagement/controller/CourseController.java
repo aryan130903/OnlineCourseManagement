@@ -45,6 +45,11 @@ public class CourseController {
         return courseService.addCourse(course);
     }
 
+    @PatchMapping("/update/{courseId}")
+    public ResponseEntity<String> updateCourse(@PathVariable Integer courseId,@RequestBody Course course) {
+        return courseService.updateCourse(courseId, course);
+    }
+
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> deleteCourse(@PathVariable int id){
         return courseService.deleteCourse(id);
