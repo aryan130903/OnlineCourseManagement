@@ -22,7 +22,7 @@ public class JwtUtils {
     private int jwtExpirations;
 
     public String getJwtFromHeader (HttpServletRequest request){
-        String bearerToken = request.getHeader("Authorisation");
+        String bearerToken = request.getHeader("Authorization");
         if (bearerToken!=null && bearerToken.startsWith("Bearer ")){
             return bearerToken.substring(7);
         }
@@ -55,7 +55,7 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public boolean validatwToken(String authToken){
+    public boolean validateToken(String authToken){
         try {
             Jwts.parser().verifyWith((SecretKey) key())
                     .build().parseSignedClaims(authToken);
@@ -63,6 +63,8 @@ public class JwtUtils {
         } catch (JwtException e) {
             throw new RuntimeException(e);
         } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
