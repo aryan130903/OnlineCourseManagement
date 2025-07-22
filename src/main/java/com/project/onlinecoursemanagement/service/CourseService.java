@@ -2,8 +2,12 @@ package com.project.onlinecoursemanagement.service;
 
 import com.project.onlinecoursemanagement.dto.CourseDto;
 import com.project.onlinecoursemanagement.mapper.CourseMapper;
+import com.project.onlinecoursemanagement.model.Category;
 import com.project.onlinecoursemanagement.model.Course;
+import com.project.onlinecoursemanagement.model.User;
+import com.project.onlinecoursemanagement.respository.CategoryRepository;
 import com.project.onlinecoursemanagement.respository.CourseRepository;
+import com.project.onlinecoursemanagement.respository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +21,15 @@ public class CourseService {
 
     CourseRepository courseRepository;
 
+    CategoryRepository categoryRepository;
+
+    UserRepository userRepository;
+
     @Autowired
-    public CourseService(CourseRepository courseRepository){
+    public CourseService(CourseRepository courseRepository, CategoryRepository categoryRepository,UserRepository userRepository){
         this.courseRepository=courseRepository;
+        this.categoryRepository=categoryRepository;
+        this.userRepository=userRepository;
     }
 
     public ResponseEntity<?> getAllCourses() {
@@ -132,6 +142,29 @@ public class CourseService {
 
         courseRepository.save(existingCourse);
         return new ResponseEntity<>("Course updated successfully", HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> getAllCategory() {
+        try {
+            List<Category> categories = categoryRepository.findAll();
+            return new ResponseEntity<>(categories, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Unable to fetch categories", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<?> getCoursesByInstructorUsername(String username) {
+        try {
+            User instructor = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<Course> courses = courseRepository.findByInstructor(instructor);
+            return new ResponseEntity<>(courses, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error fetching courses", HttpStatus.BAD_REQUEST);
+        }
     }
 
 }

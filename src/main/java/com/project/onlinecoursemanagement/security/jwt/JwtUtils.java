@@ -32,13 +32,13 @@ public class JwtUtils {
     }
 
     public String generateToken(UserDetailsImpl userDetails){
-        String username = userDetails.getUsername();
+        String email = userDetails.getEmail();
         String roles = userDetails.getAuthorities().stream()
                 .map(authority -> authority.getAuthority())
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .subject(username)
+                .subject(email)
                 .claim("roles",roles)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date().getTime() + jwtExpirations)))
@@ -46,7 +46,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token){
+    public String getEmailFromJwtToken(String token){
         return Jwts.parser()
                 .verifyWith((SecretKey) key())
                 .build().parseSignedClaims(token)

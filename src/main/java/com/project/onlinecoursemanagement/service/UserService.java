@@ -86,7 +86,7 @@ public class UserService {
 
     public JwtAuthenticationResponse loginUser(LoginRequestDto loginRequestDto) {
         Authentication authentication=authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(),loginRequestDto.getPassword())
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(),loginRequestDto.getPassword())
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails= (UserDetailsImpl) authentication.getPrincipal();
