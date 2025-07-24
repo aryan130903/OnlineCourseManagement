@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.respository;
+package com.project.onlinecoursemanagement.repository;
 
 import com.project.onlinecoursemanagement.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

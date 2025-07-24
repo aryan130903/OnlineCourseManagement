@@ -19,11 +19,11 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    @PostMapping("/place-order")
-    public ResponseEntity<String> placeOrder(Principal principal) {
-        enrollmentService.placeOrder(principal.getName());
-        return ResponseEntity.ok("Order placed and courses enrolled");
-    }
+//    @PostMapping("/place-order")
+//    public ResponseEntity<String> placeOrder(Principal principal) {
+//        enrollmentService.placeOrder(principal.getName());
+//        return ResponseEntity.ok("Order placed and courses enrolled");
+//    }
 
     @GetMapping
     public ResponseEntity<List<Course>> viewEnrolledCourses(Principal principal) {

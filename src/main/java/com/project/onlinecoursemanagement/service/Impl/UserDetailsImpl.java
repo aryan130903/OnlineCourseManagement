@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.service;
+package com.project.onlinecoursemanagement.service.Impl;
 
 
 import com.project.onlinecoursemanagement.model.User;
@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @Data
 @NoArgsConstructor

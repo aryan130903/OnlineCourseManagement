@@ -2,13 +2,11 @@ package com.project.onlinecoursemanagement.service;
 
 import com.project.onlinecoursemanagement.dto.LoginRequestDto;
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.respository.UserRepository;
+import com.project.onlinecoursemanagement.repository.UserRepository;
 import com.project.onlinecoursemanagement.security.jwt.JwtAuthenticationResponse;
 import com.project.onlinecoursemanagement.security.jwt.JwtUtils;
-import lombok.AllArgsConstructor;
+import com.project.onlinecoursemanagement.service.Impl.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

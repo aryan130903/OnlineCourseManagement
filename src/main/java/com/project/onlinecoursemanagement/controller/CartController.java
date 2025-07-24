@@ -17,7 +17,7 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/add/{courseId}")
-    public ResponseEntity<String> addToCart(@PathVariable Integer courseId, Principal principal) {
+    public ResponseEntity<String> addToCart(@PathVariable Long courseId, Principal principal) {
         cartService.addToCart(courseId, principal.getName());
         return ResponseEntity.ok("Course added to cart");
     }
@@ -28,7 +28,7 @@ public class CartController {
         return ResponseEntity.ok("Course removed from cart");
     }
 
-    @GetMapping
+    @GetMapping("/view")
     public ResponseEntity<?> viewCart(Principal principal) {
         return ResponseEntity.ok(cartService.viewCart(principal.getName()));
     }

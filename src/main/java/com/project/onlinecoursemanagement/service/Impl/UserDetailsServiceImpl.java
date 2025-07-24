@@ -1,7 +1,7 @@
-package com.project.onlinecoursemanagement.service;
+package com.project.onlinecoursemanagement.service.Impl;
 
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.respository.UserRepository;
+import com.project.onlinecoursemanagement.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.userdetails.UserDetails;

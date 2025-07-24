@@ -1,12 +1,14 @@
 package com.project.onlinecoursemanagement.controller;
 
+import com.project.onlinecoursemanagement.dto.CartSummaryDto;
 import com.project.onlinecoursemanagement.service.CourseService;
+import com.project.onlinecoursemanagement.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,14 +17,17 @@ public class StudentController {
 
     private final CourseService courseService;
 
+    private final PaymentService paymentService;
+
     @GetMapping
     public ResponseEntity<?> getAllCourses(){
         return courseService.getAllCourses();
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> getCourseById(@PathVariable Integer id){
-        return courseService.getCourseById(id);
+    public ResponseEntity<?> getCourseById(@PathVariable Long id, Authentication authentication) {
+        String studentEmail = authentication.getName();
+        return ResponseEntity.ok(courseService.getCourseById(id, studentEmail));
     }
 
     @GetMapping("category/{category}")
@@ -39,6 +44,19 @@ public class StudentController {
     public ResponseEntity<?> getAllCategory(){
         return courseService.getAllCategory();
     }
+
+    @GetMapping("/enrolled-courses")
+    public ResponseEntity<?> getEnrolledCourses(Authentication authentication) {
+        String studentEmail = authentication.getName();
+        return ResponseEntity.ok(courseService.getEnrolledCourses(studentEmail));
+    }
+
+    @PostMapping("/cart/checkout")
+    public ResponseEntity<CartSummaryDto> checkout(Principal principal) throws Exception {
+        CartSummaryDto summary = paymentService.handleCheckout(principal.getName());
+        return ResponseEntity.ok(summary);
+    }
+
 
 
 

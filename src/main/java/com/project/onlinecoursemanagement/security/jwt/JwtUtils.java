@@ -1,6 +1,6 @@
 package com.project.onlinecoursemanagement.security.jwt;
 
-import com.project.onlinecoursemanagement.service.UserDetailsImpl;
+import com.project.onlinecoursemanagement.service.Impl.UserDetailsImpl;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

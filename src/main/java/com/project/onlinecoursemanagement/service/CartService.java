@@ -3,15 +3,13 @@ package com.project.onlinecoursemanagement.service;
 import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.respository.CartRepository;
-import com.project.onlinecoursemanagement.respository.CourseRepository;
-import com.project.onlinecoursemanagement.respository.UserRepository;
+import com.project.onlinecoursemanagement.repository.CartRepository;
+import com.project.onlinecoursemanagement.repository.CourseRepository;
+import com.project.onlinecoursemanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -23,7 +21,7 @@ public class CartService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
 
-    public void addToCart(Integer courseId, String email) {
+    public void addToCart(Long courseId, String email) {
         User student = userRepository.findByEmail(email).orElseThrow();
         Course course = courseRepository.findById(courseId).orElseThrow();
 

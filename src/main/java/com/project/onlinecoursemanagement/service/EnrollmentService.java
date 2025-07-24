@@ -4,9 +4,9 @@ import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.Enrollment;
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.respository.CartRepository;
-import com.project.onlinecoursemanagement.respository.EnrollmentRepository;
-import com.project.onlinecoursemanagement.respository.UserRepository;
+import com.project.onlinecoursemanagement.repository.CartRepository;
+import com.project.onlinecoursemanagement.repository.EnrollmentRepository;
+import com.project.onlinecoursemanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +21,14 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
 
-    public void placeOrder(String email) {
-        User student = userRepository.findByEmail(email).orElseThrow();
+    public void placeOrder(String username) {
+        User student = userRepository.findByUsername(username).orElseThrow();
         Cart cart = cartRepository.findByStudent(student).orElseThrow();
+
+
+        if (cart.getCourses() == null || cart.getCourses().isEmpty()) {
+            throw new IllegalStateException("Cart is empty. Add courses before placing order.");
+        }
 
         for (Course course : cart.getCourses()) {
             Enrollment enrollment = new Enrollment();
@@ -34,13 +39,12 @@ public class EnrollmentService {
             enrollmentRepository.save(enrollment);
         }
 
-        // Clear cart after ordering
         cart.getCourses().clear();
         cartRepository.save(cart);
     }
 
-    public List<Course> getEnrolledCourses(String email) {
-        User student = userRepository.findByEmail(email).orElseThrow();
+    public List<Course> getEnrolledCourses(String username) {
+        User student = userRepository.findByUsername(username).orElseThrow();
         List<Enrollment> enrollments = enrollmentRepository.findByStudent(student);
 
         return enrollments.stream()
@@ -48,3 +52,4 @@ public class EnrollmentService {
                 .toList();
     }
 }
+

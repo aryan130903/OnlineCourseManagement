@@ -1,7 +1,7 @@
 package com.project.onlinecoursemanagement.config;
 
 import com.project.onlinecoursemanagement.security.jwt.JwtAuthenticationFilter;
-import com.project.onlinecoursemanagement.service.UserDetailsServiceImpl;
+import com.project.onlinecoursemanagement.service.Impl.UserDetailsServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 @AllArgsConstructor
-public class WebSecurityConfig {
+public class SecurityConfig {
 
     private UserDetailsServiceImpl userDetailsService;
 
@@ -49,19 +49,36 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth->auth
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/urls/**").authenticated()
-//                        .requestMatchers("/{shortUrl}").permitAll()
-                        .anyRequest().permitAll()
-
+                        .requestMatchers("/api/student/**").hasRole("STUDENT")
+                        .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 );
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
 
+        return http.build();
     }
+
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+//        http.csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(auth->auth
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/api/urls/**").authenticated()
+//                        .requestMatchers("/{shortUrl}").permitAll()
+//                        .anyRequest().permitAll()
+//
+//                );
+//        http.authenticationProvider(authenticationProvider());
+//        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+//        return http.build();
+//
+//    }
+
 
 }

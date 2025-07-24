@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.respository;
+package com.project.onlinecoursemanagement.repository;
 
 
 import com.project.onlinecoursemanagement.model.Category;

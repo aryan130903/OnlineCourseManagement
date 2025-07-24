@@ -1,7 +1,7 @@
 package com.project.onlinecoursemanagement.config;
 
 import com.project.onlinecoursemanagement.model.Role;
-import com.project.onlinecoursemanagement.respository.RoleRepository;
+import com.project.onlinecoursemanagement.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

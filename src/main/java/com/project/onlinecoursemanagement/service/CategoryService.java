@@ -1,7 +1,7 @@
 package com.project.onlinecoursemanagement.service;
 
 import com.project.onlinecoursemanagement.model.Category;
-import com.project.onlinecoursemanagement.respository.CategoryRepository;
+import com.project.onlinecoursemanagement.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

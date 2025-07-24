@@ -1,13 +1,17 @@
 package com.project.onlinecoursemanagement.service;
 
+import com.project.onlinecoursemanagement.dto.CourseDetailDto;
 import com.project.onlinecoursemanagement.dto.CourseDto;
+import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
 import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.model.Category;
 import com.project.onlinecoursemanagement.model.Course;
+import com.project.onlinecoursemanagement.model.Enrollment;
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.respository.CategoryRepository;
-import com.project.onlinecoursemanagement.respository.CourseRepository;
-import com.project.onlinecoursemanagement.respository.UserRepository;
+import com.project.onlinecoursemanagement.repository.CategoryRepository;
+import com.project.onlinecoursemanagement.repository.CourseRepository;
+import com.project.onlinecoursemanagement.repository.EnrollmentRepository;
+import com.project.onlinecoursemanagement.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +29,14 @@ public class CourseService {
 
     UserRepository userRepository;
 
+    EnrollmentRepository enrollmentRepository;
+
     @Autowired
-    public CourseService(CourseRepository courseRepository, CategoryRepository categoryRepository,UserRepository userRepository){
+    public CourseService(CourseRepository courseRepository, CategoryRepository categoryRepository,UserRepository userRepository,EnrollmentRepository enrollmentRepository){
         this.courseRepository=courseRepository;
         this.categoryRepository=categoryRepository;
         this.userRepository=userRepository;
+        this.enrollmentRepository=enrollmentRepository;
     }
 
     public ResponseEntity<?> getAllCourses() {
@@ -47,20 +54,43 @@ public class CourseService {
     }
 
 
-    public ResponseEntity<?> getCourseById(Integer id) {
+//    public ResponseEntity<?> getCourseById(Long id) {
+//        try {
+//            Optional<Course> course = courseRepository.findById(id);
+//            if (course.isPresent()) {
+//                CourseDto courseDto = CourseMapper.toDto(course.get());
+//                return new ResponseEntity<>(courseDto, HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
+//        }
+//    }
+
+    public ResponseEntity<?> getCourseById(Long courseId, String studentEmail) {
         try {
-            Optional<Course> course = courseRepository.findById(id);
-            if (course.isPresent()) {
-                CourseDto courseDto = CourseMapper.toDto(course.get());
-                return new ResponseEntity<>(courseDto, HttpStatus.OK);
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
+
+            User student = userRepository.findByEmail(studentEmail)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
+
+            boolean isEnrolled = enrollmentRepository.findByStudentAndCourse(student, course).isPresent();
+
+            if (isEnrolled) {
+                return new ResponseEntity<>(CourseMapper.toDetailDto(course), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(CourseMapper.toSummaryDto(course), HttpStatus.OK);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Error fetching course", HttpStatus.BAD_REQUEST);
         }
     }
+
+
 
 
     public ResponseEntity<?> getCoursesByInstructor(Integer id) {
@@ -104,7 +134,7 @@ public class CourseService {
     }
 
 //    --------DELETE--------
-    public ResponseEntity<String> deleteCourse(int id) {
+    public ResponseEntity<String> deleteCourse(Long id) {
 
         if (!courseRepository.existsById(id)) {
             return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
@@ -120,7 +150,7 @@ public class CourseService {
     }
 
 
-    public ResponseEntity<String> updateCourse(Integer courseId, Course updatedCourseData) {
+    public ResponseEntity<String> updateCourse(Long courseId, Course updatedCourseData) {
         Optional<Course> optionalCourse = courseRepository.findById(courseId);
         if (optionalCourse.isEmpty()) {
             return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
@@ -166,5 +196,28 @@ public class CourseService {
             return new ResponseEntity<>("Error fetching courses", HttpStatus.BAD_REQUEST);
         }
     }
+
+    public ResponseEntity<?> getEnrolledCourses(String studentEmail) {
+        try {
+            User student = userRepository.findByEmail(studentEmail)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
+
+            List<Enrollment> enrollments = enrollmentRepository.findByStudent(student);
+
+            List<Course> enrolledCourses = enrollments.stream()
+                    .map(Enrollment::getCourse)
+                    .collect(Collectors.toList());
+
+            List<CourseDetailDto> courseDtos = enrolledCourses.stream()
+                    .map(CourseMapper::toDetailDto)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(courseDtos, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error fetching enrolled courses", HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
 }
