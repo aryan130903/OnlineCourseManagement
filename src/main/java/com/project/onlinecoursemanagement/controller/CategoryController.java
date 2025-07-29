@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+
+//     TO BE DELETED ALLFUNCTIONALITY ALREADY INCLUED
 @RestController
 @RequestMapping("category")
 public class CategoryController {
@@ -19,7 +22,7 @@ public class CategoryController {
         this.categoryService=categoryService;
     }
 
-    @GetMapping("allcategory")
+    @GetMapping("all-category")
     public ResponseEntity<List<Category>> getAllCategory(){
         return categoryService.getAllCategory();
     }

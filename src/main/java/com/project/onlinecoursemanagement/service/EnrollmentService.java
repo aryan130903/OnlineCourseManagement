@@ -43,13 +43,13 @@ public class EnrollmentService {
         cartRepository.save(cart);
     }
 
-    public List<Course> getEnrolledCourses(String username) {
-        User student = userRepository.findByUsername(username).orElseThrow();
-        List<Enrollment> enrollments = enrollmentRepository.findByStudent(student);
-
-        return enrollments.stream()
-                .map(Enrollment::getCourse)
-                .toList();
-    }
+//    public List<Course> getEnrolledCourses(String username) {
+//        User student = userRepository.findByUsername(username).orElseThrow();
+//        List<Enrollment> enrollments = enrollmentRepository.findByStudent(student);
+//
+//        return enrollments.stream()
+//                .map(Enrollment::getCourse)
+//                .toList();
+//    }
 }
 

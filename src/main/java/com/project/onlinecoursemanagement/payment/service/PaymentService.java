@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.service;
+package com.project.onlinecoursemanagement.payment.service;
 
 import com.project.onlinecoursemanagement.dto.CartSummaryDto;
 import com.project.onlinecoursemanagement.payment.PaymentGateway;
@@ -12,6 +12,6 @@ public class PaymentService {
     private final PaymentGateway paymentGateway;
 
     public CartSummaryDto handleCheckout(String username) {
-        return paymentGateway.createPayment(username);
+        return paymentGateway.handleCheckout(username);
     }
 }

@@ -33,7 +33,7 @@ public class RazorpayGatewayImpl implements PaymentGateway {
     private String razorpaySecret;
 
     @Override
-    public CartSummaryDto createPayment(String username) {
+    public CartSummaryDto handleCheckout(String username) {
         try {
             User student = userRepository.findByEmail(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
@@ -65,12 +65,19 @@ public class RazorpayGatewayImpl implements PaymentGateway {
             notify.put("email", true);
             paymentRequest.put("notify", notify);
 
-//            paymentRequest.put("callback_url", "https://yourdomain.com/api/payment-webhook");
-//            paymentRequest.put("callback_method", "get");
+            // Add student email in notes so we can verify in webhook or after payment
+            JSONObject notes = new JSONObject();
+            notes.put("email", student.getEmail());
+            paymentRequest.put("notes", notes);
 
             PaymentLink paymentLink = razorpayClient.paymentLink.create(paymentRequest);
 
-            return new CartSummaryDto(totalAmount, paymentLink.get("short_url"),courses);
+            return new CartSummaryDto(
+                    totalAmount,
+                    paymentLink.get("short_url"),
+                    paymentLink.get("id"),
+                    courses
+            );
         } catch (Exception e) {
             throw new RuntimeException("Failed to create Razorpay payment", e);
         }

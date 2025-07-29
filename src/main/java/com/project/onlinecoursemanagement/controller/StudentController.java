@@ -1,14 +1,19 @@
 package com.project.onlinecoursemanagement.controller;
 
 import com.project.onlinecoursemanagement.dto.CartSummaryDto;
+import com.project.onlinecoursemanagement.model.Category;
+import com.project.onlinecoursemanagement.service.CartService;
+import com.project.onlinecoursemanagement.service.CategoryService;
 import com.project.onlinecoursemanagement.service.CourseService;
-import com.project.onlinecoursemanagement.service.PaymentService;
+import com.project.onlinecoursemanagement.payment.service.PaymentService;
+import com.project.onlinecoursemanagement.payment.service.PaymentVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +23,12 @@ public class StudentController {
     private final CourseService courseService;
 
     private final PaymentService paymentService;
+
+    private final PaymentVerificationService verificationService;
+
+    private final CartService cartService;
+
+    private final CategoryService categoryService;
 
     @GetMapping
     public ResponseEntity<?> getAllCourses(){
@@ -40,10 +51,36 @@ public class StudentController {
         return courseService.getCoursesByInstructor(id);
     }
 
-    @GetMapping("categories")
-    public ResponseEntity<?> getAllCategory(){
-        return courseService.getAllCategory();
+//    @GetMapping("categories")
+//    public ResponseEntity<?> getAllCategory(){
+//        return courseService.getAllCategory();
+//    }
+
+
+    @GetMapping("all-category")
+    public ResponseEntity<List<Category>> getAllCategory(){
+        return categoryService.getAllCategory();
     }
+
+
+
+    @PostMapping("/cart/add/{courseId}")
+    public ResponseEntity<String> addToCart(@PathVariable Long courseId, Principal principal) {
+        cartService.addToCart(courseId, principal.getName());
+        return ResponseEntity.ok("Course added to cart");
+    }
+
+    @DeleteMapping("/cart/remove/{courseId}")
+    public ResponseEntity<String> removeFromCart(@PathVariable Long courseId, Principal principal) {
+        cartService.removeFromCart(courseId, principal.getName());
+        return ResponseEntity.ok("Course removed from cart");
+    }
+
+    @GetMapping("/cart/view")
+    public ResponseEntity<?> viewCart(Principal principal) {
+        return ResponseEntity.ok(cartService.viewCart(principal.getName()));
+    }
+
 
     @GetMapping("/enrolled-courses")
     public ResponseEntity<?> getEnrolledCourses(Authentication authentication) {
@@ -57,7 +94,17 @@ public class StudentController {
         return ResponseEntity.ok(summary);
     }
 
-
+    @PostMapping("/cart/verify-payment")
+    public ResponseEntity<String> verifyPayment(@RequestParam String paymentLinkId) {
+        try {
+            String result = verificationService.verifyAndEnroll(paymentLinkId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body( e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(" Internal error: " + e.getMessage());
+        }
+    }
 
 
 }

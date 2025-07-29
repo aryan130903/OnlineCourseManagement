@@ -1,13 +1,8 @@
 package com.project.onlinecoursemanagement.service;
 
-import com.project.onlinecoursemanagement.dto.CourseDetailDto;
-import com.project.onlinecoursemanagement.dto.CourseDto;
-import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
+import com.project.onlinecoursemanagement.dto.*;
 import com.project.onlinecoursemanagement.mapper.CourseMapper;
-import com.project.onlinecoursemanagement.model.Category;
-import com.project.onlinecoursemanagement.model.Course;
-import com.project.onlinecoursemanagement.model.Enrollment;
-import com.project.onlinecoursemanagement.model.User;
+import com.project.onlinecoursemanagement.model.*;
 import com.project.onlinecoursemanagement.repository.CategoryRepository;
 import com.project.onlinecoursemanagement.repository.CourseRepository;
 import com.project.onlinecoursemanagement.repository.EnrollmentRepository;
@@ -123,17 +118,43 @@ public class CourseService {
     }
 
 
-    public ResponseEntity<String> addCourse(Course course) {
-        try {
-            courseRepository.save(course);
-            return new ResponseEntity<>("Success",HttpStatus.CREATED);
-        }catch (Exception e){
-            e.printStackTrace();
+//    public ResponseEntity<String> addCourse(Course course) {
+//        try {
+//            courseRepository.save(course);
+//            return new ResponseEntity<>("Success",HttpStatus.CREATED);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//        return new ResponseEntity<>("Failure", HttpStatus.BAD_REQUEST);
+//    }
+
+    public ResponseEntity<String> addCourse(CourseRequestDto dto) {
+        Optional<Course> existingCourse = courseRepository.findByTitleAndInstructorEmail(dto.getTitle(), dto.getInstructorEmail());
+
+        if (existingCourse.isPresent()) {
+            return new ResponseEntity<>("Course with the same title already exists for this instructor", HttpStatus.CONFLICT);
         }
-        return new ResponseEntity<>("Failure", HttpStatus.BAD_REQUEST);
+
+        Category category = categoryRepository.findByName(dto.getCategoryName())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        User instructor = userRepository.findByEmail(dto.getInstructorEmail())
+                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+
+        Course course = new Course();
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setPrice(dto.getPrice());
+        course.setCategory(category);
+        course.setInstructor(instructor);
+
+        courseRepository.save(course);
+        return new ResponseEntity<>("Course added successfully", HttpStatus.CREATED);
     }
 
-//    --------DELETE--------
+
+
+    //    --------DELETE--------
     public ResponseEntity<String> deleteCourse(Long id) {
 
         if (!courseRepository.existsById(id)) {
@@ -150,7 +171,7 @@ public class CourseService {
     }
 
 
-    public ResponseEntity<String> updateCourse(Long courseId, Course updatedCourseData) {
+    public ResponseEntity<String> updateCourse(Long courseId, CourseRequestDto dto) {
         Optional<Course> optionalCourse = courseRepository.findById(courseId);
         if (optionalCourse.isEmpty()) {
             return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
@@ -158,44 +179,86 @@ public class CourseService {
 
         Course existingCourse = optionalCourse.get();
 
-        if (updatedCourseData.getTitle() != null)
-            existingCourse.setTitle(updatedCourseData.getTitle());
+        if (dto.getTitle() != null) existingCourse.setTitle(dto.getTitle());
+        if (dto.getDescription() != null) existingCourse.setDescription(dto.getDescription());
+        if (dto.getPrice() != null) existingCourse.setPrice(dto.getPrice());
 
-        if (updatedCourseData.getDescription() != null)
-            existingCourse.setDescription(updatedCourseData.getDescription());
+        if (dto.getCategoryName() != null) {
+            Category category = categoryRepository.findByName(dto.getCategoryName())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            existingCourse.setCategory(category);
+        }
 
-        if (updatedCourseData.getPrice() != null)
-            existingCourse.setPrice(updatedCourseData.getPrice());
+        if (dto.getVideoLectures() != null) {
+            Map<Long, VideoLecture> existingVideos = existingCourse.getVideoLectures()
+                    .stream()
+                    .filter(v -> v.getId() != null)
+                    .collect(Collectors.toMap(VideoLecture::getId, v -> v));
 
-        if (updatedCourseData.getCategory() != null)
-            existingCourse.setCategory(updatedCourseData.getCategory());
+            for (VideoLectureDto videoDto : dto.getVideoLectures()) {
+                if (videoDto.getId() != null && existingVideos.containsKey(videoDto.getId())) {
+                    // Update existing video
+                    VideoLecture video = existingVideos.get(videoDto.getId());
+                    video.setTitle(videoDto.getTitle());
+                    video.setVideoUrl(videoDto.getVideoUrl());
+                } else {
+                    // Add new video
+                    VideoLecture newVideo = new VideoLecture();
+                    newVideo.setTitle(videoDto.getTitle());
+                    newVideo.setVideoUrl(videoDto.getVideoUrl());
+                    newVideo.setCourse(existingCourse);
+                    existingCourse.getVideoLectures().add(newVideo);
+                }
+            }
+        }
 
         courseRepository.save(existingCourse);
         return new ResponseEntity<>("Course updated successfully", HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getAllCategory() {
-        try {
-            List<Category> categories = categoryRepository.findAll();
-            return new ResponseEntity<>(categories, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Unable to fetch categories", HttpStatus.BAD_REQUEST);
-        }
-    }
 
-    public ResponseEntity<?> getCoursesByInstructorUsername(String username) {
+//    public ResponseEntity<?> getAllCategory() {
+//        try {
+//            List<Category> categories = categoryRepository.findAll();
+//            return new ResponseEntity<>(categories, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>("Unable to fetch categories", HttpStatus.BAD_REQUEST);
+//        }
+//    }
+
+
+    public ResponseEntity<?> getCoursesByInstructorUsername(String email) {
         try {
-            User instructor = userRepository.findByUsername(username)
+            User instructor = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             List<Course> courses = courseRepository.findByInstructor(instructor);
-            return new ResponseEntity<>(courses, HttpStatus.OK);
+
+            List<CourseDetailDto> courseDtos = courses.stream()
+                    .map(CourseMapper::toDetailDto)
+                    .toList();
+
+            return new ResponseEntity<>(courseDtos, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("Error fetching courses", HttpStatus.BAD_REQUEST);
         }
     }
+
+
+//    public ResponseEntity<?> getCoursesByInstructorUsername(String email) {
+//        try {
+//            User instructor = userRepository.findByEmail(email)
+//                    .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//            List<Course> courses = courseRepository.findByInstructor(instructor);
+//            return new ResponseEntity<>(courses, HttpStatus.OK);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>("Error fetching courses", HttpStatus.BAD_REQUEST);
+//        }
+//    }
 
     public ResponseEntity<?> getEnrolledCourses(String studentEmail) {
         try {

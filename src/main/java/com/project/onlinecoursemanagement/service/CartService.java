@@ -1,5 +1,7 @@
 package com.project.onlinecoursemanagement.service;
 
+import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
+import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.User;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -44,10 +47,21 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public Set<Course> viewCart(String email) {
+//    public Set<Course> viewCart(String email) {
+//        User student = userRepository.findByEmail(email).orElseThrow();
+//        return cartRepository.findByStudent(student)
+//                .map(Cart::getCourses)
+//                .orElse(new HashSet<>());
+//    }
+
+    public Set<CourseSummaryDto> viewCart(String email) {
         User student = userRepository.findByEmail(email).orElseThrow();
         return cartRepository.findByStudent(student)
-                .map(Cart::getCourses)
+                .map(cart -> cart.getCourses()
+                        .stream()
+                        .map(CourseMapper::toSummaryDto)
+                        .collect(Collectors.toSet()))
                 .orElse(new HashSet<>());
     }
+
 }

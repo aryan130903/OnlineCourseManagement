@@ -1,6 +1,7 @@
 package com.project.onlinecoursemanagement.controller;
 
 
+import com.project.onlinecoursemanagement.dto.CourseRequestDto;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.service.CourseService;
 import com.project.onlinecoursemanagement.service.VideoLectureService;
@@ -32,14 +33,15 @@ public class InstructorController {
     }
 
 
-    @PostMapping("add")
-    public ResponseEntity<String> addCourse(@RequestBody Course course){
-        return courseService.addCourse(course);
+    @PostMapping("/add")
+    public ResponseEntity<String> addCourse(@RequestBody CourseRequestDto dto) {
+        return courseService.addCourse(dto);
     }
 
+
     @PatchMapping("/update/{courseId}")
-    public ResponseEntity<String> updateCourse(@PathVariable Long courseId,@RequestBody Course course) {
-        return courseService.updateCourse(courseId, course);
+    public ResponseEntity<String> updateCourse(@PathVariable Long courseId,@RequestBody CourseRequestDto courseRequestDto) {
+        return courseService.updateCourse(courseId, courseRequestDto);
     }
 
     @DeleteMapping("delete/{id}")
