@@ -1,5 +1,8 @@
 package com.project.onlinecoursemanagement.service;
 
+import com.project.onlinecoursemanagement.exception.CartNotFoundException;
+import com.project.onlinecoursemanagement.exception.EmptyCartException;
+import com.project.onlinecoursemanagement.exception.UserNotFoundException;
 import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.Enrollment;
@@ -22,12 +25,15 @@ public class EnrollmentService {
     private final UserRepository userRepository;
 
     public void placeOrder(String username) {
-        User student = userRepository.findByUsername(username).orElseThrow();
-        Cart cart = cartRepository.findByStudent(student).orElseThrow();
+        User student = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException("Student Not Found"));
+        Cart cart = cartRepository.findByStudent(student)
+                .orElseThrow(()-> new CartNotFoundException("Cart does not exist"));
+
 
 
         if (cart.getCourses() == null || cart.getCourses().isEmpty()) {
-            throw new IllegalStateException("Cart is empty. Add courses before placing order.");
+            throw new EmptyCartException("Cart is empty. Add courses before placing order.");
         }
 
         for (Course course : cart.getCourses()) {
@@ -42,14 +48,5 @@ public class EnrollmentService {
         cart.getCourses().clear();
         cartRepository.save(cart);
     }
-
-//    public List<Course> getEnrolledCourses(String username) {
-//        User student = userRepository.findByUsername(username).orElseThrow();
-//        List<Enrollment> enrollments = enrollmentRepository.findByStudent(student);
-//
-//        return enrollments.stream()
-//                .map(Enrollment::getCourse)
-//                .toList();
-//    }
 }
 

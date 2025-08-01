@@ -12,7 +12,7 @@ public class CourseRequestDto {
     private String title;
     private String description;
     private BigDecimal price;
-    private String categoryName; // Instead of categoryId
+    private String categoryName;
     private String instructorEmail;
     private List<VideoLectureDto> videoLectures;
 }

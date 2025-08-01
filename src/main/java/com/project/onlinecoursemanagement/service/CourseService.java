@@ -1,6 +1,10 @@
 package com.project.onlinecoursemanagement.service;
 
 import com.project.onlinecoursemanagement.dto.*;
+import com.project.onlinecoursemanagement.exception.CategoryNotFoundException;
+import com.project.onlinecoursemanagement.exception.CourseNotFoundException;
+import com.project.onlinecoursemanagement.exception.UnauthorizedAccessException;
+import com.project.onlinecoursemanagement.exception.UserNotFoundException;
 import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.model.*;
 import com.project.onlinecoursemanagement.repository.CategoryRepository;
@@ -49,28 +53,13 @@ public class CourseService {
     }
 
 
-//    public ResponseEntity<?> getCourseById(Long id) {
-//        try {
-//            Optional<Course> course = courseRepository.findById(id);
-//            if (course.isPresent()) {
-//                CourseDto courseDto = CourseMapper.toDto(course.get());
-//                return new ResponseEntity<>(courseDto, HttpStatus.OK);
-//            } else {
-//                return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
     public ResponseEntity<?> getCourseById(Long courseId, String studentEmail) {
         try {
             Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new RuntimeException("Course not found"));
+                    .orElseThrow(() -> new CourseNotFoundException("Course not found"));
 
             User student = userRepository.findByEmail(studentEmail)
-                    .orElseThrow(() -> new RuntimeException("Student not found"));
+                    .orElseThrow(() -> new UserNotFoundException("Student not found"));
 
             boolean isEnrolled = enrollmentRepository.findByStudentAndCourse(student, course).isPresent();
 
@@ -118,15 +107,6 @@ public class CourseService {
     }
 
 
-//    public ResponseEntity<String> addCourse(Course course) {
-//        try {
-//            courseRepository.save(course);
-//            return new ResponseEntity<>("Success",HttpStatus.CREATED);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        return new ResponseEntity<>("Failure", HttpStatus.BAD_REQUEST);
-//    }
 
     public ResponseEntity<String> addCourse(CourseRequestDto dto) {
         Optional<Course> existingCourse = courseRepository.findByTitleAndInstructorEmail(dto.getTitle(), dto.getInstructorEmail());
@@ -136,10 +116,15 @@ public class CourseService {
         }
 
         Category category = categoryRepository.findByName(dto.getCategoryName())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
 
         User instructor = userRepository.findByEmail(dto.getInstructorEmail())
-                .orElseThrow(() -> new RuntimeException("Instructor not found"));
+                .orElseThrow(() -> new UserNotFoundException("Instructor not found"));
+
+        if (!instructor.getRole().getName().equals("ROLE_INSTRUCTOR")) {
+            throw new UnauthorizedAccessException("Only instructors can create courses.");
+        }
+
 
         Course course = new Course();
         course.setTitle(dto.getTitle());
@@ -179,13 +164,18 @@ public class CourseService {
 
         Course existingCourse = optionalCourse.get();
 
+        if (!existingCourse.getInstructor().getEmail().equals(dto.getInstructorEmail())) {
+            throw new UnauthorizedAccessException("You are not authorized to update this course.");
+        }
+
+
         if (dto.getTitle() != null) existingCourse.setTitle(dto.getTitle());
         if (dto.getDescription() != null) existingCourse.setDescription(dto.getDescription());
         if (dto.getPrice() != null) existingCourse.setPrice(dto.getPrice());
 
         if (dto.getCategoryName() != null) {
             Category category = categoryRepository.findByName(dto.getCategoryName())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
             existingCourse.setCategory(category);
         }
 
@@ -217,21 +207,12 @@ public class CourseService {
     }
 
 
-//    public ResponseEntity<?> getAllCategory() {
-//        try {
-//            List<Category> categories = categoryRepository.findAll();
-//            return new ResponseEntity<>(categories, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>("Unable to fetch categories", HttpStatus.BAD_REQUEST);
-//        }
-//    }
 
 
     public ResponseEntity<?> getCoursesByInstructorUsername(String email) {
         try {
             User instructor = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
 
             List<Course> courses = courseRepository.findByInstructor(instructor);
 
@@ -246,19 +227,6 @@ public class CourseService {
         }
     }
 
-
-//    public ResponseEntity<?> getCoursesByInstructorUsername(String email) {
-//        try {
-//            User instructor = userRepository.findByEmail(email)
-//                    .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//            List<Course> courses = courseRepository.findByInstructor(instructor);
-//            return new ResponseEntity<>(courses, HttpStatus.OK);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>("Error fetching courses", HttpStatus.BAD_REQUEST);
-//        }
-//    }
 
     public ResponseEntity<?> getEnrolledCourses(String studentEmail) {
         try {

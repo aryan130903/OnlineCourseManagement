@@ -12,9 +12,6 @@ public class RegisterRequestDto {
     @Column(nullable = false,unique = true)
     private String email;
 
-//    @Enumerated(EnumType.STRING)
-//    private Role role;
-
     private String role;
 
     @Column(nullable = false)

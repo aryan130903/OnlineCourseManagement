@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.config;
+package com.project.onlinecoursemanagement.config.cloud;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

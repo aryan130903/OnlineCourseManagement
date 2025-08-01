@@ -6,6 +6,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+// USED WHEN COURSE RETURNED SHOULD CONTAIN VIDEO LECTURE
+
 @Data
 @AllArgsConstructor
 public class CourseDetailDto {

@@ -1,7 +1,7 @@
-package com.project.onlinecoursemanagement.service;
+package com.project.onlinecoursemanagement.service.cloud;
 
 import com.cloudinary.Cloudinary;
-import com.project.onlinecoursemanagement.config.CloudMediaClient;
+import com.project.onlinecoursemanagement.config.cloud.CloudMediaClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

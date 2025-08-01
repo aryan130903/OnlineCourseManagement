@@ -1,7 +1,10 @@
 package com.project.onlinecoursemanagement.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import java.math.BigDecimal;
+
+// USED WHEN STUDENT ACCESSES THE COURSES (EITHER ALL OR BY ID OR INSTRUCTOR)
 
 @Data
 public class CourseDto {

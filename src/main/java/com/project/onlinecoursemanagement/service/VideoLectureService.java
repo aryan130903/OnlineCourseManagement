@@ -5,10 +5,13 @@ import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.model.VideoLecture;
 import com.project.onlinecoursemanagement.repository.CourseRepository;
 import com.project.onlinecoursemanagement.repository.VideoLectureRepository;
+import com.project.onlinecoursemanagement.service.cloud.VideoUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.project.onlinecoursemanagement.exception.VideoUploadException;
 
 @Service
 public class VideoLectureService {
@@ -32,7 +35,12 @@ public class VideoLectureService {
             throw new AccessDeniedException("You are not allowed to modify this course.");
         }
 
-        String videoUrl = videoUploadService.uploadVideo(file);
+        String videoUrl;
+        try {
+            videoUrl = videoUploadService.uploadVideo(file);
+        } catch (Exception e) {
+            throw new VideoUploadException("Failed to upload video: " + e.getMessage());
+        }
 
         VideoLecture video = new VideoLecture();
         video.setTitle(title);

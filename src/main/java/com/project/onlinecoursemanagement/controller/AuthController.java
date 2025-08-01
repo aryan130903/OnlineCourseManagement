@@ -29,21 +29,10 @@ public class AuthController {
     }
 
     @PostMapping("/public/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDto registerRequestDto){
-        User user = new User();
-        user.setUsername(registerRequestDto.getUsername());
-        user.setEmail(registerRequestDto.getEmail());
-        user.setPassword(registerRequestDto.getPassword());
-
-        String requestedRole = registerRequestDto.getRole();
-        String roleToAssign = (requestedRole == null || requestedRole.isBlank()) ? "ROLE_STUDENT" : requestedRole;
-
-        Role role = roleRepository.findByName(roleToAssign)
-                .orElseThrow(() -> new RuntimeException("Role not found: " + roleToAssign));
-
-        user.setRole(role);
-        userService.registerUser(user);
+    public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDto registerRequestDto) {
+        userService.registerUser(registerRequestDto);
         return ResponseEntity.ok("User registered");
     }
+
 
 }

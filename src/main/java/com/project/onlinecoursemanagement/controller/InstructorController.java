@@ -27,9 +27,9 @@ public class InstructorController {
     private VideoLectureService videoLectureService;
 
     @GetMapping("/my-courses")
-    public ResponseEntity<?> getCourses() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return courseService.getCoursesByInstructorUsername(username);
+    public ResponseEntity<?> getCourses(Authentication authentication) {
+        String email = authentication.getName();
+        return courseService.getCoursesByInstructorUsername(email);
     }
 
 

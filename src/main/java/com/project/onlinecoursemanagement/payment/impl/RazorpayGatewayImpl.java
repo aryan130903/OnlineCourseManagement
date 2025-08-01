@@ -2,9 +2,13 @@ package com.project.onlinecoursemanagement.payment.impl;
 
 import com.project.onlinecoursemanagement.dto.CartSummaryDto;
 import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
+import com.project.onlinecoursemanagement.exception.CartNotFoundException;
+import com.project.onlinecoursemanagement.exception.EmptyCartException;
+import com.project.onlinecoursemanagement.exception.PaymentVerificationException;
+import com.project.onlinecoursemanagement.exception.UserNotFoundException;
+import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.User;
-import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.payment.PaymentGateway;
 import com.project.onlinecoursemanagement.repository.CartRepository;
 import com.project.onlinecoursemanagement.repository.UserRepository;
@@ -36,10 +40,14 @@ public class RazorpayGatewayImpl implements PaymentGateway {
     public CartSummaryDto handleCheckout(String username) {
         try {
             User student = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found with email: " + username));
 
             Cart cart = cartRepository.findByStudent(student)
-                    .orElseThrow(() -> new RuntimeException("Cart not found"));
+                    .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + username));
+
+            if (cart.getCourses().isEmpty()) {
+                throw new EmptyCartException("Cart is empty for user: " + username);
+            }
 
             List<CourseSummaryDto> courses = cart.getCourses().stream()
                     .map(CourseMapper::toSummaryDto)
@@ -65,7 +73,6 @@ public class RazorpayGatewayImpl implements PaymentGateway {
             notify.put("email", true);
             paymentRequest.put("notify", notify);
 
-            // Add student email in notes so we can verify in webhook or after payment
             JSONObject notes = new JSONObject();
             notes.put("email", student.getEmail());
             paymentRequest.put("notes", notes);
@@ -78,8 +85,11 @@ public class RazorpayGatewayImpl implements PaymentGateway {
                     paymentLink.get("id"),
                     courses
             );
+
+        } catch (UserNotFoundException | CartNotFoundException | EmptyCartException exception) {
+            throw exception;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create Razorpay payment", e);
+            throw new RuntimeException(e);
         }
     }
 }

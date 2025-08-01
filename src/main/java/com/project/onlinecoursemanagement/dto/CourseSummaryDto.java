@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
+// USED IN SERVICES LIKE CART WHEN USING VIEW ENDPOINT
+
 @Data
 @AllArgsConstructor
 public class CourseSummaryDto {

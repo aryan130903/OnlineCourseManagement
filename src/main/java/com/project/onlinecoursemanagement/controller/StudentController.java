@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -65,20 +64,20 @@ public class StudentController {
 
 
     @PostMapping("/cart/add/{courseId}")
-    public ResponseEntity<String> addToCart(@PathVariable Long courseId, Principal principal) {
-        cartService.addToCart(courseId, principal.getName());
+    public ResponseEntity<String> addToCart(@PathVariable Long courseId, Authentication authentication) {
+        cartService.addToCart(courseId, authentication.getName());
         return ResponseEntity.ok("Course added to cart");
     }
 
     @DeleteMapping("/cart/remove/{courseId}")
-    public ResponseEntity<String> removeFromCart(@PathVariable Long courseId, Principal principal) {
-        cartService.removeFromCart(courseId, principal.getName());
+    public ResponseEntity<String> removeFromCart(@PathVariable Long courseId, Authentication authentication) {
+        cartService.removeFromCart(courseId, authentication.getName());
         return ResponseEntity.ok("Course removed from cart");
     }
 
     @GetMapping("/cart/view")
-    public ResponseEntity<?> viewCart(Principal principal) {
-        return ResponseEntity.ok(cartService.viewCart(principal.getName()));
+    public ResponseEntity<?> viewCart(Authentication authentication) {
+        return ResponseEntity.ok(cartService.viewCart(authentication.getName()));
     }
 
 
@@ -89,8 +88,8 @@ public class StudentController {
     }
 
     @PostMapping("/cart/checkout")
-    public ResponseEntity<CartSummaryDto> checkout(Principal principal) throws Exception {
-        CartSummaryDto summary = paymentService.handleCheckout(principal.getName());
+    public ResponseEntity<CartSummaryDto> checkout(Authentication authentication) throws Exception {
+        CartSummaryDto summary = paymentService.handleCheckout(authentication.getName());
         return ResponseEntity.ok(summary);
     }
 

@@ -1,5 +1,8 @@
 package com.project.onlinecoursemanagement.payment.service;
 
+import com.project.onlinecoursemanagement.exception.CartNotFoundException;
+import com.project.onlinecoursemanagement.exception.PaymentVerificationException;
+import com.project.onlinecoursemanagement.exception.UserNotFoundException;
 import com.project.onlinecoursemanagement.model.Cart;
 import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.Enrollment;
@@ -36,48 +39,30 @@ public class PaymentVerificationService {
         try {
             RazorpayClient razorpayClient = new RazorpayClient(razorpayKey, razorpaySecret);
             PaymentLink paymentLink = razorpayClient.paymentLink.fetch(paymentLinkId);
-
-            // Parse full JSON of paymentLink
-
             JSONObject json = new JSONObject(paymentLink.toString());
-//            System.out.println(json);
 
             if (!"paid".equals(json.getString("status"))) {
                 return "Payment not completed. Status: " + json.getString("status");
             }
 
-            System.out.println(json.getString("status"));
-
-            JSONObject notes = json.getJSONObject("notes");
-            String email = notes.getString("email");
-
-            System.out.println(email);
-
+            String email = json.getJSONObject("notes").getString("email");
 
             User student = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Student not found"));
+                    .orElseThrow(() -> new UserNotFoundException("Student not found with email: " + email));
 
             Cart cart = cartRepository.findByStudent(student)
-                    .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-
-            System.out.println("user fetched");
+                    .orElseThrow(() -> new CartNotFoundException("Cart not found for student: " + email));
 
             for (Course course : cart.getCourses()) {
                 boolean alreadyEnrolled = enrollmentRepository
                         .findByStudentAndCourse(student, course)
                         .isPresent();
 
-//
-
                 if (!alreadyEnrolled) {
-
-//                    System.out.println(course.getId());
                     Enrollment enrollment = new Enrollment();
                     enrollment.setStudent(student);
                     enrollment.setCourse(course);
                     enrollment.setEnrolledAt(LocalDateTime.now());
-
                     enrollmentRepository.save(enrollment);
                 }
             }
@@ -86,9 +71,11 @@ public class PaymentVerificationService {
             cartRepository.save(cart);
 
             return "Payment verified, user enrolled, cart cleared.";
+
+        } catch (UserNotFoundException | CartNotFoundException | IllegalStateException ex) {
+            throw ex;
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Error verifying payment: " + e.getMessage();
+            throw new PaymentVerificationException("Failed to verify Razorpay payment: " + e.getMessage());
         }
     }
 }
