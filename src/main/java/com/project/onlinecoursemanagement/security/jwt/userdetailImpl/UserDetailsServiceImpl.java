@@ -1,4 +1,4 @@
-package com.project.onlinecoursemanagement.service.Impl;
+package com.project.onlinecoursemanagement.security.jwt.userdetailImpl;
 
 import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.repository.UserRepository;

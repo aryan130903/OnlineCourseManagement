@@ -8,6 +8,7 @@ import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.repository.CartRepository;
 import com.project.onlinecoursemanagement.repository.CourseRepository;
+import com.project.onlinecoursemanagement.repository.EnrollmentRepository;
 import com.project.onlinecoursemanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     public void addToCart(Long courseId, String email) {
         User student = userRepository.findByEmail(email)
@@ -32,6 +34,15 @@ public class CartService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with ID: " + courseId));
 
+        boolean alreadyEnrolled = enrollmentRepository
+                .findByStudentAndCourse(student, course)
+                .isPresent();
+
+        if (alreadyEnrolled) {
+            throw new AlreadyEnrolledException("You are already enrolled in the course: " + course.getTitle());
+        }
+
+        // ✅ Get or create cart
         Cart cart = cartRepository.findByStudent(student)
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
@@ -39,13 +50,11 @@ public class CartService {
                     return cartRepository.save(newCart);
                 });
 
-        if (cart.getCourses().contains(course)) {
-            throw new CourseAlreadyInCartException("Course already exists in cart for user: " + email);
-        }
-
+        // ✅ Add to cart
         cart.getCourses().add(course);
         cartRepository.save(cart);
     }
+
 
 
     public void removeFromCart(Long courseId, String email) {
@@ -71,15 +80,21 @@ public class CartService {
 
     public Set<CourseSummaryDto> viewCart(String email) {
         User student = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         return cartRepository.findByStudent(student)
-                .map(cart -> cart.getCourses()
-                        .stream()
-                        .map(CourseMapper::toSummaryDto)
-                        .collect(Collectors.toSet()))
-                .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + email));
+                .map(cart -> {
+                    if (cart.getCourses().isEmpty()) {
+                        throw new EmptyCartException("Your cart is empty");
+                    }
+                    return cart.getCourses()
+                            .stream()
+                            .map(CourseMapper::toSummaryDto)
+                            .collect(Collectors.toSet());
+                })
+                .orElseThrow(() -> new CartNotFoundException("Cart not found for user"));
     }
+
 
 
 }

@@ -1,7 +1,7 @@
 package com.project.onlinecoursemanagement.controller;
 
 import com.project.onlinecoursemanagement.dto.CartSummaryDto;
-import com.project.onlinecoursemanagement.model.Category;
+import com.project.onlinecoursemanagement.dto.CourseDetailDto;
 import com.project.onlinecoursemanagement.service.CartService;
 import com.project.onlinecoursemanagement.service.CategoryService;
 import com.project.onlinecoursemanagement.service.CourseService;
@@ -37,7 +37,7 @@ public class StudentController {
     @GetMapping("{id}")
     public ResponseEntity<?> getCourseById(@PathVariable Long id, Authentication authentication) {
         String studentEmail = authentication.getName();
-        return ResponseEntity.ok(courseService.getCourseById(id, studentEmail));
+        return courseService.getCourseById(id, studentEmail);
     }
 
     @GetMapping("category/{category}")
@@ -50,14 +50,10 @@ public class StudentController {
         return courseService.getCoursesByInstructor(id);
     }
 
-//    @GetMapping("categories")
-//    public ResponseEntity<?> getAllCategory(){
-//        return courseService.getAllCategory();
-//    }
 
 
     @GetMapping("all-category")
-    public ResponseEntity<List<Category>> getAllCategory(){
+    public ResponseEntity<?> getAllCategory(){
         return categoryService.getAllCategory();
     }
 
@@ -82,7 +78,7 @@ public class StudentController {
 
 
     @GetMapping("/enrolled-courses")
-    public ResponseEntity<?> getEnrolledCourses(Authentication authentication) {
+    public ResponseEntity<List<CourseDetailDto>> getEnrolledCourses(Authentication authentication) {
         String studentEmail = authentication.getName();
         return ResponseEntity.ok(courseService.getEnrolledCourses(studentEmail));
     }

@@ -11,11 +11,12 @@ import com.project.onlinecoursemanagement.repository.RoleRepository;
 import com.project.onlinecoursemanagement.repository.UserRepository;
 import com.project.onlinecoursemanagement.security.jwt.JwtAuthenticationResponse;
 import com.project.onlinecoursemanagement.security.jwt.JwtUtils;
-import com.project.onlinecoursemanagement.service.Impl.UserDetailsImpl;
+import com.project.onlinecoursemanagement.security.jwt.userdetailImpl.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,19 +58,10 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public ResponseEntity<List<User>> getAllUser() {
-        try {
-            return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
-        } catch (Exception e) {
-           e.printStackTrace();
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     public JwtAuthenticationResponse loginUser(LoginRequestDto loginRequestDto) {
 
         User user = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + loginRequestDto.getEmail()));
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
@@ -81,4 +73,21 @@ public class UserService {
 
         return new JwtAuthenticationResponse(jwt);
     }
+
+    public ResponseEntity<List<User>> getAllUser() {
+        try {
+            List<User> users = userRepository.findAll();
+
+            if (users.isEmpty()){
+                throw new UserNotFoundException("User Does Not Exist");
+            }
+
+            return new ResponseEntity<>(users, HttpStatus.OK);
+        } catch (Exception e) {
+           e.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
 }

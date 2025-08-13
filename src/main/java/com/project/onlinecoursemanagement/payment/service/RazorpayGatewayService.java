@@ -1,10 +1,9 @@
-package com.project.onlinecoursemanagement.payment.impl;
+package com.project.onlinecoursemanagement.payment.service;
 
 import com.project.onlinecoursemanagement.dto.CartSummaryDto;
 import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
 import com.project.onlinecoursemanagement.exception.CartNotFoundException;
 import com.project.onlinecoursemanagement.exception.EmptyCartException;
-import com.project.onlinecoursemanagement.exception.PaymentVerificationException;
 import com.project.onlinecoursemanagement.exception.UserNotFoundException;
 import com.project.onlinecoursemanagement.mapper.CourseMapper;
 import com.project.onlinecoursemanagement.model.Cart;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service("razorpayGateway")
 @RequiredArgsConstructor
-public class RazorpayGatewayImpl implements PaymentGateway {
+public class RazorpayGatewayService implements PaymentGateway {
 
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
@@ -40,13 +39,13 @@ public class RazorpayGatewayImpl implements PaymentGateway {
     public CartSummaryDto handleCheckout(String username) {
         try {
             User student = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UserNotFoundException("User not found with email: " + username));
+                    .orElseThrow(() -> new UserNotFoundException("User not found with email"));
 
             Cart cart = cartRepository.findByStudent(student)
-                    .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + username));
+                    .orElseThrow(() -> new CartNotFoundException("Cart not found for user"));
 
             if (cart.getCourses().isEmpty()) {
-                throw new EmptyCartException("Cart is empty for user: " + username);
+                throw new EmptyCartException("Cart is empty for user");
             }
 
             List<CourseSummaryDto> courses = cart.getCourses().stream()

@@ -1,6 +1,10 @@
 package com.project.onlinecoursemanagement.service;
 
+import com.project.onlinecoursemanagement.dto.CategoryDto;
+import com.project.onlinecoursemanagement.exception.CategoryNotFoundException;
+import com.project.onlinecoursemanagement.mapper.CategoryMapper;
 import com.project.onlinecoursemanagement.model.Category;
+import com.project.onlinecoursemanagement.model.Course;
 import com.project.onlinecoursemanagement.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -20,26 +26,38 @@ public class CategoryService {
         this.categoryRepository=categoryRepository;
     }
 
-    public ResponseEntity<List<Category>> getAllCategory() {
+    public ResponseEntity<List<CategoryDto>> getAllCategory() {
         try {
-            return new ResponseEntity<>(categoryRepository.findAll(), HttpStatus.OK);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
-    }
+            List<Category> categories = categoryRepository.findAll();
 
-    public ResponseEntity<String> addCategory(Category category) {
-        try {
-            String normalizedName = category.getName().toLowerCase();
-
-            if (categoryRepository.existsByName(normalizedName)) {
-                return new ResponseEntity<>("Category already exists", HttpStatus.CONFLICT);
+            if (categories.isEmpty()){
+                throw new CategoryNotFoundException("No categories found");
             }
 
-            category.setName(normalizedName);
-            categoryRepository.save(category);
+            List<CategoryDto> dtoList = categories.stream()
+                    .map(CategoryMapper::toSummaryDto)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(dtoList, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    public ResponseEntity<?> addCategory(CategoryDto categoryDto) {
+        try {
+                String normalizedName = categoryDto.getName().toLowerCase();
+
+                if (categoryRepository.existsByName(normalizedName)) {
+                    return new ResponseEntity<>("Category already exists", HttpStatus.CONFLICT);
+                }
+
+                Category category = new Category();
+                category.setName(normalizedName);
+
+                categoryRepository.save(category);
             return new ResponseEntity<>("Success", HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,12 +65,20 @@ public class CategoryService {
         return new ResponseEntity<>("Failure", HttpStatus.BAD_REQUEST);
     }
 
-
     public ResponseEntity<String> deleteCategory(Integer id) {
 
-        if (!categoryRepository.existsById(id)) {
-            return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(()-> new CategoryNotFoundException("Category not found"));
+
+        List<Course> courses = category.getCourses();
+
+        if (!courses.isEmpty()){
+            return new ResponseEntity<>("Cannot delete category.It's in use by some course", HttpStatus.NOT_FOUND);
         }
+
+//        if (!categoryRepository.existsById(id)) {
+//            return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
+//        }
 
         try {
             categoryRepository.deleteById(id);
@@ -62,4 +88,5 @@ public class CategoryService {
         }
         return new ResponseEntity<>("Delete failed", HttpStatus.BAD_REQUEST);
     }
+
 }
