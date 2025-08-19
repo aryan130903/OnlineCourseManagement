@@ -35,8 +35,7 @@ public class CartService {
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with ID: " + courseId));
 
         boolean alreadyEnrolled = enrollmentRepository
-                .findByStudentAndCourse(student, course)
-                .isPresent();
+                .existsByStudentAndCourse(student, course);
 
         if (alreadyEnrolled) {
             throw new AlreadyEnrolledException("You are already enrolled in the course: " + course.getTitle());
@@ -49,6 +48,10 @@ public class CartService {
                     newCart.setStudent(student);
                     return cartRepository.save(newCart);
                 });
+
+        if (cart.getCourses().contains(course)) {
+            throw new CourseAlreadyInCartException("Course is already in the cart");
+        }
 
         // ✅ Add to cart
         cart.getCourses().add(course);

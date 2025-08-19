@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CourseAlreadyInCartException.class)
     public ResponseEntity<String> handleDuplicateCourse(CourseAlreadyInCartException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(CartNotFoundException.class)
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(VideoUploadException.class)
     public ResponseEntity<String> handleVideoUpload(VideoUploadException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
@@ -128,6 +128,32 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(QuizNotFoundException.class)
+    public ResponseEntity<?> handleQuizNotFound(QuizNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(LectureNotWatchedException.class)
+    public ResponseEntity<?> handleLectureNotWatched(LectureNotWatchedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+
+    @ExceptionHandler(QuizAlreadyExistsException.class)
+    public ResponseEntity<String> handleQuizAlreadyExists(QuizAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(QuestionNotFoundException.class)
+    public ResponseEntity<String> handleQuestionNotFound(QuestionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    // Question already exists
+    @ExceptionHandler(QuestionAlreadyExistsException.class)
+    public ResponseEntity<String> handleQuestionAlreadyExists(QuestionAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 
     // Generic fallback
     @ExceptionHandler(Exception.class)

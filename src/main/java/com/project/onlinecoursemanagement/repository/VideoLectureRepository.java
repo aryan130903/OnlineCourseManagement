@@ -11,5 +11,7 @@ public interface VideoLectureRepository extends JpaRepository<VideoLecture, Long
 
 
     List<VideoLecture> findByCourseId(Long courseId);
+
+    boolean existsByCourseIdAndTitle(Long courseId, String title);
 }
 

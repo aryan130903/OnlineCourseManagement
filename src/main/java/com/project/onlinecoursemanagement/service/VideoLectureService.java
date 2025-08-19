@@ -39,6 +39,11 @@ public class VideoLectureService {
             throw new UnauthorizedAccessException("You are not allowed to modify this course.");
         }
 
+        if (videoLectureRepository.existsByCourseIdAndTitle(courseId, title)) {
+            throw new VideoUploadException("A video with this title already exists in the course.");
+        }
+
+
         String videoUrl;
         try {
             videoUrl = videoUploadService.uploadVideo(file);

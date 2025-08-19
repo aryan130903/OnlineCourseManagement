@@ -1,13 +1,10 @@
 package com.project.onlinecoursemanagement.controller;
 
-import com.project.onlinecoursemanagement.dto.CartSummaryDto;
-import com.project.onlinecoursemanagement.dto.CourseDetailDto;
-import com.project.onlinecoursemanagement.dto.CourseSummaryDto;
-import com.project.onlinecoursemanagement.service.CartService;
-import com.project.onlinecoursemanagement.service.CategoryService;
-import com.project.onlinecoursemanagement.service.CourseService;
+import com.project.onlinecoursemanagement.dto.*;
+import com.project.onlinecoursemanagement.service.*;
 import com.project.onlinecoursemanagement.payment.service.PaymentService;
 import com.project.onlinecoursemanagement.payment.service.PaymentVerificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,14 +18,12 @@ import java.util.List;
 public class StudentController {
 
     private final CourseService courseService;
-
     private final PaymentService paymentService;
-
     private final PaymentVerificationService verificationService;
-
     private final CartService cartService;
-
     private final CategoryService categoryService;
+    private final StudentQuizService studentQuizService;
+    private final CertificateService certificateService;
 
     @GetMapping
     public ResponseEntity<?> getAllCourses(){
@@ -108,5 +103,66 @@ public class StudentController {
         }
     }
 
+    @GetMapping("/{courseId}/quiz")
+    public ResponseEntity<QuizResponseDto> getQuiz(
+            @PathVariable Long courseId,
+           Authentication authentication) {
+        String studentEmail = authentication.getName();
+        QuizResponseDto quiz = studentQuizService.getQuizForStudent(courseId, studentEmail);
+        return ResponseEntity.ok(quiz);
+    }
+
+    /**
+     * Submit quiz answers for evaluation.
+     */
+    @PostMapping("/{courseId}/quiz/submit")
+    public ResponseEntity<QuizResultDto> submitQuiz(
+            @PathVariable Long courseId,
+             Authentication authentication,
+            @Valid @RequestBody QuizSubmissionDto submission) {
+
+        String studentEmail=authentication.getName();
+        QuizResultDto result = studentQuizService.submitQuiz(courseId, studentEmail, submission);
+        return ResponseEntity.ok(result);
+    }
+
+//    @PostMapping("/dummy-certificate")
+//    public ResponseEntity<String> testCertificate() throws Exception {
+//        String url = certificateService.generateCertificate(
+//                "Aryan Yadav",          // studentName
+//                "aryan31424@gmail.com", // studentEmail
+//                "Java Spring Boot for Beginners", // courseName
+//                95.0                    // score
+//        );
+//        return ResponseEntity.ok(url);
+//    }
+
+    /**
+     * Mark a video lecture as watched.
+     */
+    @PostMapping("/{courseId}/lectures/{lectureId}/watch")
+    public ResponseEntity<String> markLectureWatched(
+            @PathVariable Long courseId,
+            @PathVariable Long lectureId,Authentication authentication) {
+        String studentEmail=authentication.getName();
+        return ResponseEntity.ok(studentQuizService.markLectureWatched(courseId, lectureId, studentEmail));
+    }
+
+    /**
+     * Check whether all lectures are completed for a course.
+     */
+//    @GetMapping("/{courseId}/lectures/completion-status")
+//    public ResponseEntity<Boolean> checkAllLecturesWatched(
+//            @PathVariable Long courseId,Authentication authentication) {
+//        String studentEmail=authentication.getName();
+//        return ResponseEntity.ok(studentQuizService.checkAllLecturesWatched(courseId, studentEmail));
+//    }
+
+    @GetMapping("/certificates")
+    public ResponseEntity<List<CertificateDto>> getAllCertificates(Authentication authentication) {
+        String studentEmail = authentication.getName();
+        List<CertificateDto> certificates = certificateService.getCertificatesForStudent(studentEmail);
+        return ResponseEntity.ok(certificates);
+    }
 
 }

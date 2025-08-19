@@ -1,12 +1,13 @@
 package com.project.onlinecoursemanagement.controller;
 
 
-import com.project.onlinecoursemanagement.dto.CourseDetailDto;
-import com.project.onlinecoursemanagement.dto.CourseRequestDto;
-import com.project.onlinecoursemanagement.dto.VideoLectureUpdateDto;
+import com.project.onlinecoursemanagement.dto.*;
 import com.project.onlinecoursemanagement.exception.VideoUploadException;
 import com.project.onlinecoursemanagement.model.Course;
+import com.project.onlinecoursemanagement.model.Question;
+import com.project.onlinecoursemanagement.model.Quiz;
 import com.project.onlinecoursemanagement.service.CourseService;
+import com.project.onlinecoursemanagement.service.QuizService;
 import com.project.onlinecoursemanagement.service.VideoLectureService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,8 +33,9 @@ public class InstructorController {
 
     private final CourseService courseService;
 
-    @Autowired
-    private VideoLectureService videoLectureService;
+    private final VideoLectureService videoLectureService;
+
+    private final QuizService quizService;
 
     @GetMapping("/my-courses")
     public ResponseEntity<?> getCourses(Authentication authentication) {
@@ -100,5 +103,56 @@ public class InstructorController {
 
         return ResponseEntity.ok("Video uploaded successfully!");
     }
+
+
+//    -------------------QUIZ MAPPINGS----------------
+
+    @PostMapping("/quiz/create/{courseId}")
+    public ResponseEntity<?> createQuiz(
+            @PathVariable Long courseId,
+            @Valid @RequestBody QuizRequestDto dto,Authentication authentication) {
+        String email = authentication.getName();
+        quizService.createQuiz(courseId, dto,email);
+        return ResponseEntity.ok("Quiz created successfully");
+    }
+
+    @PostMapping("/quiz/{quizId}/add-question")
+    public ResponseEntity<?> addQuestion(
+            @PathVariable Long quizId,
+            @Valid @RequestBody QuestionRequestDto dto,Authentication authentication) {
+        String email = authentication.getName();
+        quizService.addQuestion(quizId, dto,email);
+        return ResponseEntity.ok("Question added successfully");
+    }
+
+    @GetMapping("/quiz/course/{courseId}")
+    public ResponseEntity<QuizResponseDto> getQuiz(@PathVariable Long courseId,Authentication authentication) {
+        String email=authentication.getName();
+        QuizResponseDto quizDto = quizService.getQuizByCourse(courseId,email);
+        return ResponseEntity.ok(quizDto);
+    }
+
+//    @DeleteMapping("/quiz/{quizId}")
+//    public ResponseEntity<?> deleteQuiz(@PathVariable Long quizId) {
+//        quizService.deleteQuiz(quizId);
+//        return ResponseEntity.ok("Quiz deleted successfully");
+//    }
+
+    @PutMapping("/quiz/{quizId}")
+    public ResponseEntity<?> updateQuiz(
+            @PathVariable Long quizId,
+            @RequestBody QuizRequestDto dto) {
+        QuizRequestDto updatedQuiz = quizService.updateQuiz(quizId, dto);
+        return ResponseEntity.ok(updatedQuiz);
+    }
+
+    // Delete a question by ID
+    @DeleteMapping("/question/{questionId}")
+    public ResponseEntity<String> deleteQuestion(@PathVariable Long questionId,Authentication authentication) {
+        String email=authentication.getName();
+        quizService.deleteQuestion(questionId,email);
+        return ResponseEntity.ok("Question deleted successfully");
+    }
+
 
 }
