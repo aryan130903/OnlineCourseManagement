@@ -54,7 +54,7 @@ public class JwtUtils {
     }
 
     private Key key(){
-        System.out.println(jwtSecret);
+//        System.out.println(jwtSecret);
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 

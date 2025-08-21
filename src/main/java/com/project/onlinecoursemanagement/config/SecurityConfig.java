@@ -3,6 +3,8 @@ package com.project.onlinecoursemanagement.config;
 import com.project.onlinecoursemanagement.security.jwt.JwtAuthenticationFilter;
 import com.project.onlinecoursemanagement.security.jwt.userdetailImpl.UserDetailsServiceImpl;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,14 +19,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
+
+    @Value("${app.cors.allowed.origins}")
+    private String allowedOrigins;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(){
@@ -51,7 +61,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .cors() // enable CORS
+                .and()
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/student/courses/all-category").permitAll()
@@ -73,20 +86,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-//        http.csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth->auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/urls/**").authenticated()
-//                        .requestMatchers("/{shortUrl}").permitAll()
-//                        .anyRequest().permitAll()
-//
-//                );
-//        http.authenticationProvider(authenticationProvider());
-//        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-//        return http.build();
-//
-//    }
+    // ---------- ADD CORS CONFIGURATION FOR DEV WITH DYNAMIC ORIGINS ----------
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(allowedOrigins)); // dynamic from property/env
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // optional: allow cookies/auth headers
 
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

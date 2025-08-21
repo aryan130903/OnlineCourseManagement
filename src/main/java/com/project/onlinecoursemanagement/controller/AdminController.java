@@ -2,14 +2,12 @@ package com.project.onlinecoursemanagement.controller;
 
 
 import com.project.onlinecoursemanagement.dto.CategoryDto;
-import com.project.onlinecoursemanagement.model.Category;
 import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.service.CategoryService;
 import com.project.onlinecoursemanagement.service.CourseService;
 import com.project.onlinecoursemanagement.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

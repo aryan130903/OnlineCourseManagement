@@ -3,9 +3,6 @@ package com.project.onlinecoursemanagement.controller;
 
 import com.project.onlinecoursemanagement.dto.*;
 import com.project.onlinecoursemanagement.exception.VideoUploadException;
-import com.project.onlinecoursemanagement.model.Course;
-import com.project.onlinecoursemanagement.model.Question;
-import com.project.onlinecoursemanagement.model.Quiz;
 import com.project.onlinecoursemanagement.service.CourseService;
 import com.project.onlinecoursemanagement.service.QuizService;
 import com.project.onlinecoursemanagement.service.VideoLectureService;
@@ -13,17 +10,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.AccessDeniedException;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,7 +31,7 @@ public class InstructorController {
     @GetMapping("/my-courses")
     public ResponseEntity<?> getCourses(Authentication authentication) {
         String email = authentication.getName();
-        return courseService.getCoursesByInstructorUsername(email);
+        return courseService.getCoursesByInstructorEmail(email);
     }
 
     @GetMapping("/my-course/{courseId}")

@@ -1,9 +1,11 @@
 package com.project.onlinecoursemanagement.controller;
 
 import com.project.onlinecoursemanagement.dto.*;
-import com.project.onlinecoursemanagement.service.*;
+import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.payment.service.PaymentService;
 import com.project.onlinecoursemanagement.payment.service.PaymentVerificationService;
+import com.project.onlinecoursemanagement.repository.UserRepository;
+import com.project.onlinecoursemanagement.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +27,16 @@ public class StudentController {
     private final CategoryService categoryService;
     private final StudentQuizService studentQuizService;
     private final CertificateService certificateService;
+    private final UserService userService;
+    private final UserRepository userRepository;
+
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
+        String email = authentication.getName();
+        UserDto userDto = userService.getUserByEmail(email);
+        return ResponseEntity.ok(userDto);
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllCourses(){
@@ -44,6 +57,18 @@ public class StudentController {
     @GetMapping("instructor/{id}")
     public ResponseEntity<?> getCoursesByInstructor(@PathVariable Integer id){
         return courseService.getCoursesByInstructor(id);
+    }
+
+    @GetMapping("instructor/{instructor}")
+    public ResponseEntity<?> getCoursesByInstructorEmail(@PathVariable String instructor){
+        Optional<User> user=userRepository.findByUsername(instructor);
+        return courseService.getCoursesByInstructorEmail(instructor);
+    }
+
+    @GetMapping("/instructor-name/{username}")
+    public ResponseEntity<?> getCoursesByInstructorUsername(@PathVariable String username) {
+        List<CourseDetailDto> courseDtos = courseService.getCoursesByInstructorUsername(username);
+        return ResponseEntity.ok(courseDtos);
     }
 
 
@@ -159,10 +184,16 @@ public class StudentController {
 //    }
 
     @GetMapping("/certificates")
-    public ResponseEntity<List<CertificateDto>> getAllCertificates(Authentication authentication) {
+    public ResponseEntity<?> getAllCertificates(Authentication authentication) {
         String studentEmail = authentication.getName();
         List<CertificateDto> certificates = certificateService.getCertificatesForStudent(studentEmail);
+
+        if (certificates.isEmpty()) {
+            return ResponseEntity.ok("You currently have no certificates");
+        }
+
         return ResponseEntity.ok(certificates);
     }
+
 
 }

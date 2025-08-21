@@ -3,8 +3,6 @@ package com.project.onlinecoursemanagement.controller;
 
 import com.project.onlinecoursemanagement.dto.LoginRequestDto;
 import com.project.onlinecoursemanagement.dto.RegisterRequestDto;
-import com.project.onlinecoursemanagement.model.Role;
-import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.repository.RoleRepository;
 import com.project.onlinecoursemanagement.service.UserService;
 import jakarta.validation.Valid;

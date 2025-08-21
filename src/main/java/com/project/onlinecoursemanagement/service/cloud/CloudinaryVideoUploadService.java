@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @Service
-public class CloudinaryVideoUploadService implements VideoUploadService {
+public class CloudinaryVideoUploadService implements CloudVideoUploadService {
 
     private final Cloudinary cloudinary;
 
