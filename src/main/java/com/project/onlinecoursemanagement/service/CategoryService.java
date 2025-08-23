@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface CategoryService {
 
-    ResponseEntity<List<CategoryDto>> getAllCategory();
+    List<CategoryDto> getAllCategory();
 
-    ResponseEntity<?> addCategory(CategoryDto categoryDto);
+    String addCategory(CategoryDto categoryDto);
 
-    ResponseEntity<String> deleteCategory(Integer id);
+    String deleteCategory(Integer id);
 }

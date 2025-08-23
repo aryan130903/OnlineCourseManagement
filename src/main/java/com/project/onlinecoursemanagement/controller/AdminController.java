@@ -2,6 +2,7 @@ package com.project.onlinecoursemanagement.controller;
 
 
 import com.project.onlinecoursemanagement.dto.CategoryDto;
+import com.project.onlinecoursemanagement.dto.CourseDto;
 import com.project.onlinecoursemanagement.model.User;
 import com.project.onlinecoursemanagement.service.CategoryService;
 import com.project.onlinecoursemanagement.service.CourseService;
@@ -19,9 +20,7 @@ import java.util.List;
 public class AdminController {
 
     private final UserService userService;
-
     private final CourseService courseService;
-
     private final CategoryService categoryService;
 
     @GetMapping("/all-user")
@@ -30,26 +29,27 @@ public class AdminController {
     }
 
     @GetMapping("/all-courses")
-    public ResponseEntity<?> getAllCourse(){
-        return courseService.getAllCourses();
+    public ResponseEntity<List<CourseDto>> getAllCourses() {
+        return ResponseEntity.ok(courseService.getAllCourses());
     }
 
 
     @GetMapping("/category/all-category")
-    public ResponseEntity<?> getAllCategory(){
-        return categoryService.getAllCategory();
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+    List<CategoryDto> categories = categoryService.getAllCategory();
+        return ResponseEntity.ok(categories);
     }
 
     @PostMapping("/category/add")
     public ResponseEntity<?> addCategory(@Valid @RequestBody CategoryDto categoryDto) {
 //        categoryService.addCategory(categoryDto);
 //        return ResponseEntity.status(HttpStatus.CREATED);
-        return categoryService.addCategory(categoryDto);
+        return ResponseEntity.ok(categoryService.addCategory(categoryDto));
 
     }
     
     @DeleteMapping("/category/delete/{id}")
     public ResponseEntity<String> deleteCategory(@PathVariable Integer id) {
-        return categoryService.deleteCategory(id);
+        return ResponseEntity.ok(categoryService.deleteCategory(id));
     }
 }

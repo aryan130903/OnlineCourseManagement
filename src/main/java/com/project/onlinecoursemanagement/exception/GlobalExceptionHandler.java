@@ -155,6 +155,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    @ExceptionHandler(AlreadyInUseException.class)
+    public ResponseEntity<String> handleAlreadyInUseException(AlreadyInUseException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleOtherErrors(Exception ex) {

@@ -4,6 +4,7 @@ package com.project.onlinecoursemanagement.controller;
 import com.project.onlinecoursemanagement.dto.*;
 import com.project.onlinecoursemanagement.exception.VideoUploadException;
 import com.project.onlinecoursemanagement.service.CourseService;
+import com.project.onlinecoursemanagement.service.EnrollmentService;
 import com.project.onlinecoursemanagement.service.QuizService;
 import com.project.onlinecoursemanagement.service.VideoLectureService;
 import jakarta.validation.Valid;
@@ -15,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,10 +31,26 @@ public class InstructorController {
 
     private final QuizService quizService;
 
+    private final EnrollmentService enrollmentService;
+
     @GetMapping("/my-courses")
     public ResponseEntity<?> getCourses(Authentication authentication) {
         String email = authentication.getName();
         return courseService.getCoursesByInstructorEmail(email);
+    }
+
+    @GetMapping("/enrolled-student/{courseId}")
+    public ResponseEntity<List<UserDto>> getStudents(
+            @PathVariable Long courseId,
+            Authentication authentication) {
+
+        // Get the logged-in instructor email from Authentication
+        String instructorEmail = authentication.getName();
+
+        // Delegate all business logic to service
+        List<UserDto> students = enrollmentService.getStudentsByCourse(courseId, instructorEmail);
+
+        return ResponseEntity.ok(students);
     }
 
     @GetMapping("/my-course/{courseId}")
@@ -48,14 +67,14 @@ public class InstructorController {
     @PostMapping("/add")
     public ResponseEntity<String> addCourse(@Valid @RequestBody CourseRequestDto dto,Authentication authentication) {
         String email = authentication.getName();
-        return courseService.addCourse(dto,email);
+        return ResponseEntity.ok(courseService.addCourse(dto,email));
     }
 
 
     @PutMapping("/update/{courseId}")
     public ResponseEntity<String> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequestDto courseRequestDto, Authentication authentication) {
         String email = authentication.getName();
-        return courseService.updateCourse(courseId, courseRequestDto,email);
+        return ResponseEntity.ok(courseService.updateCourse(courseId, courseRequestDto,email));
     }
 
     @DeleteMapping("/my-courses/{courseId}/video-lectures/{videoId}")
@@ -73,7 +92,7 @@ public class InstructorController {
     @DeleteMapping("delete/{id}")
     public ResponseEntity<String> deleteCourse(@PathVariable Long id,Authentication authentication){
         String email=authentication.getName();
-        return courseService.deleteCourse(id,email);
+        return ResponseEntity.ok(courseService.deleteCourse(id,email));
     }
 
 
@@ -138,10 +157,10 @@ public class InstructorController {
     }
 
     // Delete a question by ID
-    @DeleteMapping("/question/{questionId}")
-    public ResponseEntity<String> deleteQuestion(@PathVariable Long questionId,Authentication authentication) {
+    @DeleteMapping("/quiz/{quizId}/question/{questionId}")
+    public ResponseEntity<String> deleteQuestion(@PathVariable Long quizId ,@PathVariable Long questionId,Authentication authentication) {
         String email=authentication.getName();
-        quizService.deleteQuestion(questionId,email);
+        quizService.deleteQuestion(quizId,questionId,email);
         return ResponseEntity.ok("Question deleted successfully");
     }
 

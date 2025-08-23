@@ -7,6 +7,8 @@ import com.project.onlinecoursemanagement.model.*;
 import com.project.onlinecoursemanagement.repository.*;
 import com.project.onlinecoursemanagement.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class CourseServiceImpl implements CourseService {
 
     CartRepository cartRepository;
 
+
     @Autowired
     public CourseServiceImpl(CourseRepository courseRepository, CategoryRepository categoryRepository,UserRepository userRepository,EnrollmentRepository enrollmentRepository,CartRepository cartRepository){
         this.courseRepository=courseRepository;
@@ -37,24 +40,22 @@ public class CourseServiceImpl implements CourseService {
         this.cartRepository=cartRepository;
     }
 
-    public ResponseEntity<?> getAllCourses() {
+    @Cacheable(value = "allCourses")
+    public List<CourseDto> getAllCourses() {
 
         List<Course> courses = courseRepository.findAll();
 
         if (courses.isEmpty()) {
-            throw new CourseNotFoundException("No courses exists");
+            throw new CourseNotFoundException("No courses exist");
         }
 
-        List<CourseDto> courseDtos = courses.stream()
+        return courses.stream()
                 .map(CourseMapper::toDto)
                 .collect(Collectors.toList());
-
-        return new ResponseEntity<>(courseDtos, HttpStatus.OK);
-
     }
 
 
-    public ResponseEntity<?> getCourseById(Long courseId, String studentEmail) {
+    public Object getCourseById(Long courseId, String studentEmail) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found"));
 
@@ -63,12 +64,7 @@ public class CourseServiceImpl implements CourseService {
 
         boolean isEnrolled = enrollmentRepository.findByStudentAndCourse(student, course).isPresent();
 
-        if (isEnrolled) {
-            return new ResponseEntity<>(CourseMapper.toDetailDto(course), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(CourseMapper.toSummaryDto(course), HttpStatus.OK);
-        }
-
+        return isEnrolled ? CourseMapper.toDetailDto(course) : CourseMapper.toSummaryDto(course);
     }
 
 
@@ -122,11 +118,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
 
-    public ResponseEntity<String> addCourse(CourseRequestDto dto,String email) {
-        Optional<Course> existingCourse = courseRepository.findByTitleAndInstructorEmail(dto.getTitle(), email);
+    @CacheEvict(value = {"allCourses", "courseById"}, allEntries = true)
+    public String addCourse(CourseRequestDto dto, String email) {
+        String title = dto.getTitle().trim();
+        Optional<Course> existingCourse = courseRepository.findByTitleAndInstructorEmail(title, email);
 
         if (existingCourse.isPresent()) {
-            return new ResponseEntity<>("Course with the same title already exists for this instructor", HttpStatus.CONFLICT);
+            throw new AlreadyInUseException("Course with the same title already exists for this instructor");
         }
 
         Category category = categoryRepository.findByName(dto.getCategoryName())
@@ -139,23 +137,24 @@ public class CourseServiceImpl implements CourseService {
             throw new UnauthorizedAccessException("Only instructors can create courses.");
         }
 
-
         Course course = new Course();
-        course.setTitle(dto.getTitle());
+        course.setTitle(title);
         course.setDescription(dto.getDescription());
         course.setPrice(dto.getPrice());
         course.setCategory(category);
         course.setInstructor(instructor);
 
         courseRepository.save(course);
-        return new ResponseEntity<>("Course added successfully", HttpStatus.CREATED);
+        return "Course added successfully";
     }
 
 
 
+
     //    --------DELETE--------
+    @CacheEvict(value = {"allCourses", "courseById"}, allEntries = true)
     @Transactional
-    public ResponseEntity<String> deleteCourse(Long id, String email) {
+    public String deleteCourse(Long id, String email) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found"));
 
@@ -163,7 +162,7 @@ public class CourseServiceImpl implements CourseService {
             throw new UnauthorizedAccessException("You are not allowed to delete this course");
         }
 
-        // Remove course from all carts
+
         List<Cart> cartsWithCourse = cartRepository.findAllByCourses_Id(id);
         for (Cart cart : cartsWithCourse) {
             cart.getCourses().remove(course);
@@ -173,20 +172,20 @@ public class CourseServiceImpl implements CourseService {
         // Delete course
         courseRepository.delete(course);
 
-        return ResponseEntity.ok("Course deleted successfully");
+        return "Course deleted successfully";
     }
 
 
 
 
 
-    public ResponseEntity<String> updateCourse(Long courseId, CourseRequestDto dto,String email) {
-        Optional<Course> optionalCourse = courseRepository.findById(courseId);
-        if (optionalCourse.isEmpty()) {
-            return new ResponseEntity<>("Course not found", HttpStatus.NOT_FOUND);
-        }
+    @CacheEvict(value = {"allCourses", "courseById"}, allEntries = true)
+    public String updateCourse(Long courseId, CourseRequestDto dto,String email) {
+        Course optionalCourse = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException("Course not found"));
 
-        Course existingCourse = optionalCourse.get();
+
+        Course existingCourse = optionalCourse;
 
         if (!existingCourse.getInstructor().getEmail().equals(email)) {
             throw new UnauthorizedAccessException("You are not authorized to update this course.");
@@ -227,7 +226,7 @@ public class CourseServiceImpl implements CourseService {
 //        }
 
         courseRepository.save(existingCourse);
-        return new ResponseEntity<>("Course updated successfully", HttpStatus.OK);
+        return "Course updated successfully";
     }
 
 

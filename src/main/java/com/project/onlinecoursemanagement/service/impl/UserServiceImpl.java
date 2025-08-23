@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        return new UserDto(user.getEmail(), user.getUsername(), user.getRole().getName());
+        return new UserDto(user.getEmail(), user.getUsername());
     }
 
     public void registerUser(RegisterRequestDto dto) {

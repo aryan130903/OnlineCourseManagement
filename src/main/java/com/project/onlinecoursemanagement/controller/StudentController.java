@@ -39,14 +39,15 @@ public class StudentController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllCourses(){
-        return courseService.getAllCourses();
+    public ResponseEntity<List<CourseDto>> getAllCourses() {
+        return ResponseEntity.ok(courseService.getAllCourses());
     }
+
 
     @GetMapping("{id}")
     public ResponseEntity<?> getCourseById(@PathVariable Long id, Authentication authentication) {
         String studentEmail = authentication.getName();
-        return courseService.getCourseById(id, studentEmail);
+        return ResponseEntity.ok(courseService.getCourseById(id, studentEmail));
     }
 
     @GetMapping("category/{category}")
@@ -59,11 +60,11 @@ public class StudentController {
         return courseService.getCoursesByInstructor(id);
     }
 
-    @GetMapping("instructor/{instructor}")
-    public ResponseEntity<?> getCoursesByInstructorEmail(@PathVariable String instructor){
-        Optional<User> user=userRepository.findByUsername(instructor);
-        return courseService.getCoursesByInstructorEmail(instructor);
-    }
+//    @GetMapping("instructor/{instructor}")
+//    public ResponseEntity<?> getCoursesByInstructorEmail(@PathVariable String instructor){
+//        Optional<User> user=userRepository.findByUsername(instructor);
+//        return courseService.getCoursesByInstructorEmail(instructor);
+//    }
 
     @GetMapping("/instructor-name/{username}")
     public ResponseEntity<?> getCoursesByInstructorUsername(@PathVariable String username) {
@@ -80,8 +81,9 @@ public class StudentController {
 
 
     @GetMapping("all-category")
-    public ResponseEntity<?> getAllCategory(){
-        return categoryService.getAllCategory();
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        List<CategoryDto> categories = categoryService.getAllCategory();
+        return ResponseEntity.ok(categories);
     }
 
 

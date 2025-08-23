@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface CourseService {
 
-    ResponseEntity<?> getAllCourses();
+    List<CourseDto> getAllCourses();
 
-    ResponseEntity<?> getCourseById(Long courseId, String studentEmail);
+    Object getCourseById(Long courseId, String studentEmail);
 
     ResponseEntity<?> getCoursesByInstructor(Integer id);
 
@@ -17,11 +17,11 @@ public interface CourseService {
 
     List<CourseSummaryDto> searchCoursesByTitle(String title);
 
-    ResponseEntity<String> addCourse(CourseRequestDto dto, String email);
+    String addCourse(CourseRequestDto dto, String email);
 
-    ResponseEntity<String> deleteCourse(Long id, String email);
+    String deleteCourse(Long id, String email);
 
-    ResponseEntity<String> updateCourse(Long courseId, CourseRequestDto dto, String email);
+    String updateCourse(Long courseId, CourseRequestDto dto, String email);
 
     List<CourseDetailDto> getCoursesByInstructorUsername(String username);
 

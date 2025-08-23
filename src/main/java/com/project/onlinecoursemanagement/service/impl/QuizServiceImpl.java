@@ -162,11 +162,17 @@ public class QuizServiceImpl implements QuizService {
 
 
     @Transactional
-    public void deleteQuestion(Long questionId,String email) {
+    public void deleteQuestion(Long quizId ,Long questionId,String email) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new QuizNotFoundException("Question not found with ID: " + questionId));
 
-        if (!question.getQuiz().getCourse().getInstructor().getEmail().equals(email)) {
+        Quiz quiz = question.getQuiz();
+
+        if (!quiz.getId().equals(quizId)) {
+            throw new UnauthorizedAccessException("This question does not belong to the specified quiz");
+        }
+
+        if (!quiz.getCourse().getInstructor().getEmail().equals(email)) {
             throw new UnauthorizedAccessException("You are not allowed to delete this question");
         }
 

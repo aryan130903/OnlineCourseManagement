@@ -22,5 +22,5 @@ public interface QuizService {
     QuizRequestDto updateQuiz(Long quizId, QuizRequestDto dto);
 
     // Instructor: delete question from quiz
-    void deleteQuestion(Long questionId, String email);
+    void deleteQuestion(Long quizId,Long questionId, String email);
 }
