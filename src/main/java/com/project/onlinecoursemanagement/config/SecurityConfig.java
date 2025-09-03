@@ -19,10 +19,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.CorsConfigurationSource;
-
 import java.util.List;
 
 @Configuration
@@ -36,6 +32,10 @@ public class SecurityConfig {
     @Value("${app.cors.allowed.origins}")
     private String allowedOrigins;
 
+//    @Bean tells Spring to create and manage this object inside the Spring Application Context.
+//    This means:
+//    You don’t have to manually create new JwtAuthenticationFilter() wherever you need it.
+//    Spring can inject it (@Autowired) wherever required.
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(){
         return new JwtAuthenticationFilter();

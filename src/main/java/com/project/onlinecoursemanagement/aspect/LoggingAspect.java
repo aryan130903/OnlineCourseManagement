@@ -31,6 +31,7 @@ public class LoggingAspect {
         String className = joinPoint.getSignature().getDeclaringTypeName();
         String methodName = joinPoint.getSignature().getName();
 
+        //MDC stands for Mapped Diagnostic Context
         MDC.put("requestId", UUID.randomUUID().toString());
 
         logger.info("[{}] Entering {}.{}() with arguments: {}",

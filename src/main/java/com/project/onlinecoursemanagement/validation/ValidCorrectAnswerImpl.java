@@ -17,12 +17,14 @@ public class ValidCorrectAnswerImpl implements ConstraintValidator<ValidCorrectA
                         || dto.getCorrectAnswer().equalsIgnoreCase(dto.getOption4()));
 
         if (!isValid) {
-            // Disable default violation message
+            // Remove the default violation
             context.disableDefaultConstraintViolation();
-            // Add custom message for the correctAnswer field
+
+            // Use the annotation's message instead of hardcoding
             context.buildConstraintViolationWithTemplate(
-                    "Correct answer must match one of the provided options"
-            ).addPropertyNode("correctAnswer").addConstraintViolation();
+                            context.getDefaultConstraintMessageTemplate()
+                    ).addPropertyNode("correctAnswer")
+                    .addConstraintViolation();
         }
 
         return isValid;

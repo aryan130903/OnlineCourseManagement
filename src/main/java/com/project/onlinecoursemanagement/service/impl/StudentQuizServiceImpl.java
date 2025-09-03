@@ -71,11 +71,24 @@ public class StudentQuizServiceImpl implements StudentQuizService {
      */
     @Transactional
     public QuizResultDto submitQuiz(Long courseId, String studentEmail, QuizSubmissionDto submission) {
+        // Fetch student
+
+        // Fetch student
+        User student = userRepository.findByEmail(studentEmail)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
         // Fetch course
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found"));
 
-        // Fetch quiz for the course
+        // Check enrollment
+        boolean enrolled = enrollmentRepository.existsByStudentAndCourse(student, course);
+        if (!enrolled) {
+            throw new UnauthorizedAccessException("Student is not enrolled in this course");
+        }
+
+
+        // --- Check if a quiz exists for the course ---
         Quiz quiz = quizRepository.findByCourseId(courseId)
                 .orElseThrow(() -> new QuizNotFoundException("Quiz not found for this course"));
 
@@ -95,9 +108,6 @@ public class StudentQuizServiceImpl implements StudentQuizService {
         double scorePercentage = (totalQuestions == 0) ? 0.0 : (correctCount * 100.0 / totalQuestions);
 
         // Save quiz submission
-        User student = userRepository.findByEmail(studentEmail)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
         QuizSubmission quizSubmission = QuizSubmission.builder()
                 .quiz(quiz)
                 .student(student)
@@ -121,11 +131,9 @@ public class StudentQuizServiceImpl implements StudentQuizService {
             result.setMessage("Sorry, try again. Keep practicing!");
         }
 
-
         // Generate certificate if score >= 80%
         if (scorePercentage >= 80) {
             try {
-                // Check if certificate already exists
                 Certificate certificate = certificateRepository
                         .findByStudentEmailAndCourseName(student.getEmail(), course.getTitle())
                         .orElse(null);
@@ -138,12 +146,10 @@ public class StudentQuizServiceImpl implements StudentQuizService {
                 );
 
                 if (certificate != null) {
-                    // Update existing certificate
                     certificate.setFilePath(certificateUrl);
                     certificate.setIssueDate(LocalDate.now());
                     certificateRepository.save(certificate);
                 } else {
-                    // Create new certificate
                     Certificate newCertificate = new Certificate();
                     newCertificate.setStudentEmail(student.getEmail());
                     newCertificate.setCourseName(course.getTitle());
@@ -152,7 +158,6 @@ public class StudentQuizServiceImpl implements StudentQuizService {
                     certificateRepository.save(newCertificate);
                 }
 
-                // Add certificate download URL to result
                 result.setCertificateUrl(certificateUrl);
 
             } catch (Exception e) {
@@ -162,6 +167,7 @@ public class StudentQuizServiceImpl implements StudentQuizService {
 
         return result;
     }
+
 
 
 

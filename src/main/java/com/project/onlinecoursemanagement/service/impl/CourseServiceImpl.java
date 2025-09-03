@@ -120,6 +120,10 @@ public class CourseServiceImpl implements CourseService {
 
     @CacheEvict(value = {"allCourses", "courseById"}, allEntries = true)
     public String addCourse(CourseRequestDto dto, String email) {
+
+        Category category = categoryRepository.findByName(dto.getCategoryName())
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+
         String title = dto.getTitle().trim();
         Optional<Course> existingCourse = courseRepository.findByTitleAndInstructorEmail(title, email);
 
@@ -127,8 +131,6 @@ public class CourseServiceImpl implements CourseService {
             throw new AlreadyInUseException("Course with the same title already exists for this instructor");
         }
 
-        Category category = categoryRepository.findByName(dto.getCategoryName())
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
 
         User instructor = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Instructor not found"));

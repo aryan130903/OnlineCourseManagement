@@ -11,6 +11,8 @@ import java.util.List;
 @Configuration
 public class DataInitializer {
 
+    // CommandLineRunner is a Functional interface and contains only one method named run which is
+    //implemented via lambda expression
     @Bean
     CommandLineRunner initRoles(RoleRepository roleRepository) {
         return args -> {

@@ -28,7 +28,7 @@ public class StudentController {
     private final StudentQuizService studentQuizService;
     private final CertificateService certificateService;
     private final UserService userService;
-    private final UserRepository userRepository;
+//    private final UserRepository userRepository;
 
 
     @GetMapping("/me")

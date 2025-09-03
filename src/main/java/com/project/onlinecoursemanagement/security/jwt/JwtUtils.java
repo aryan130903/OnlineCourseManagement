@@ -55,6 +55,7 @@ public class JwtUtils {
 
     private Key key(){
 //        System.out.println(jwtSecret);
+        //HS = HMAC with SHA (Hash-based Message Authentication Code)
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 

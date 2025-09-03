@@ -49,7 +49,10 @@ public class CartServiceImpl implements CartService {
                     return cartRepository.save(newCart);
                 });
 
-        if (cart.getCourses().contains(course)) {
+        boolean alreadyInCart = cart.getCourses().stream()
+                .anyMatch(c -> c.getId().equals(course.getId()));
+
+        if (alreadyInCart) {
             throw new CourseAlreadyInCartException("Course is already in the cart");
         }
 

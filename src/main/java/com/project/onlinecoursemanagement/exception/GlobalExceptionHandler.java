@@ -160,7 +160,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
-
     // Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleOtherErrors(Exception ex) {
